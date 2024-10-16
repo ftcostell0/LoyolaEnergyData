@@ -1,6 +1,7 @@
 '''
 DataReader
-Last Update: 10/15/24
+Version: 1.0
+Last Update: 10/16/24
 
 This program reads in Loyola's BGE data and outputs as a single csv file to be used later
 '''
