@@ -66,5 +66,22 @@ class MeterData:
 
         return tempDF
 
+def main():
+    # Initialize empty dataframe to constantly append to
+    outputDF = pd.DataFrame()
 
-MeterData("example.csv")
+    # Allow for user to input multiple files
+    while True:
+        userInput = input("Please enter a filename or STOP to stop" + "\n")
+
+        # Add error checking later
+        if(userInput == "STOP"):
+            break
+        else:
+            tempDF = MeterData(userInput).outputData
+            outputDF = pd.concat([outputDF,tempDF])
+        
+    # Output to csv
+    outputDF.to_csv('output.csv')
+
+main()
