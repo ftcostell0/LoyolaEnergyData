@@ -10,6 +10,9 @@ import pandas as pd
 
 # Class to handle data from each meter csv
 class MeterData:
+    # Dataframe of each meter and its respective building
+    meterDF = pd.read_csv('meters.csv')
+
     def __init__(self, originalCSVFile):
         
         # Store initial dataframe
@@ -19,7 +22,11 @@ class MeterData:
         self.dataType = self.sourceDataFrame.loc[0,'Type']
         self.dataUnit = self.sourceDataFrame.loc[0,'Usage Unit']
         self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
-        self.buildingName = None
+        self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
+
+        # Building characteristics
+        self.buildingSquareFootage = None
+        self.buildingOccupancy = None
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
@@ -45,7 +52,5 @@ class MeterData:
 
         return dataframe
     
-    def nameBuilding(self, dataframe):
-        return
 
-MeterData("example1.csv")
+MeterData("example.csv")
