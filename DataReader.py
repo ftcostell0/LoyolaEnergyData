@@ -13,6 +13,8 @@ import pandas as pd
 class MeterData:
     # Dataframe of each meter and its respective building
     meterDF = pd.read_csv('meters.csv')
+    # Dataframe of occupancy in each building
+    occupancyDF = pd.read_csv('occupancy.csv')
 
     def __init__(self, originalCSVFile):
         
@@ -27,7 +29,7 @@ class MeterData:
 
         # Building characteristics
         self.buildingSquareFootage = None
-        self.buildingOccupancy = None
+        self.buildingOccupancy = MeterData.occupancyDF.loc[MeterData.occupancyDF['building'] == self.buildingName, 'occupancy'].values[0]
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
