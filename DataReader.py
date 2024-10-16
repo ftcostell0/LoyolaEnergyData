@@ -21,19 +21,31 @@ class MeterData:
         self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
         self.buildingName = None
 
-        # Electric data comes in 15 minute intervals while gas comes in hourly intervals
-        # Electric needs to be compressed
-        if self.dataType == 'Electric Usage':
-            self.sourceDataFrame = self.timeCompression(self.sourceDataFrame)
+        tempDF = self.standardizeTime(self.sourceDataFrame)
 
         # Output as a clean dataframe
         self.outputData = None
 
-    def timeCompression(dataframe):
-        return "This is going to fucking suck"
+    # Standardize the time data
+    # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
+    def standardizeTime(self, dataframe):
+
+        # Standardize as pandas datetime, set as index, and drop unnecessary columns
+        dataframe['datetime'] = pd.to_datetime(dataframe['Date'] + ' '  + dataframe['Start Time'])
+        dataframe.set_index('datetime', inplace=True)
+        dataframe = dataframe.drop(['Date', 'Start Time'], axis = 1)
+
+        # Resample rules
+        dataframe = dataframe.resample('h').agg({
+            'Type':'first',
+            'Meter':'first',
+            'Usage Unit':'first',
+            'Usage':'sum'
+        })
+
+        return dataframe
     
+    def nameBuilding(self, dataframe):
+        return
 
-    
-
-
-print(MeterData("example.csv").dataType)
+MeterData("example1.csv")
