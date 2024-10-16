@@ -31,7 +31,7 @@ class MeterData:
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
         # Output as a clean dataframe
-        self.outputData = None
+        self.outputData = self.processData(tempDF)
 
     # Standardize the time data
     # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
@@ -39,7 +39,7 @@ class MeterData:
 
         # Standardize as pandas datetime, set as index, and drop unnecessary columns
         dataframe['datetime'] = pd.to_datetime(dataframe['Date'] + ' '  + dataframe['Start Time'])
-        dataframe.set_index('datetime', inplace=True)
+        dataframe.set_index(['datetime'], inplace=True)
         dataframe = dataframe.drop(['Date', 'Start Time'], axis = 1)
 
         # Resample rules
@@ -52,5 +52,19 @@ class MeterData:
 
         return dataframe
     
+    # Final process of data to be outputted
+    def processData(self, dataframe):
+        tempDF = dataframe
+
+        # Add columns with new data
+        tempDF['Building'] = self.buildingName
+        tempDF['Occupancy'] = self.buildingOccupancy
+        tempDF['SquareFootage'] = self.buildingSquareFootage
+
+        # Re-index dataframe
+        tempDF.set_index('Meter', append=True,inplace=True)
+
+        return tempDF
+
 
 MeterData("example.csv")
