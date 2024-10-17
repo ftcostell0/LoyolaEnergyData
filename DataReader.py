@@ -1,7 +1,7 @@
 '''
 DataReader
-Version: 1.0
-Last Update: 10/16/24
+Version: 1.1
+Last Update: 10/17/24
 
 This program reads in Loyola's BGE data and outputs as a single csv file to be used later
 '''
@@ -13,6 +13,8 @@ import pandas as pd
 class MeterData:
     # Dataframe of each meter and its respective building
     meterDF = pd.read_csv('meters.csv')
+    # Dataframe of occupancy in each building
+    occupancyDF = pd.read_csv('occupancy.csv')
 
     def __init__(self, originalCSVFile):
         
@@ -27,7 +29,7 @@ class MeterData:
 
         # Building characteristics
         self.buildingSquareFootage = None
-        self.buildingOccupancy = None
+        self.buildingOccupancy = MeterData.occupancyDF.loc[MeterData.occupancyDF['building'] == self.buildingName, 'occupancy'].values[0]
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
@@ -57,13 +59,15 @@ class MeterData:
     def processData(self, dataframe):
         tempDF = dataframe
 
+        tempDF = tempDF.drop(['Meter'], axis=1)
+
         # Add columns with new data
         tempDF['Building'] = self.buildingName
         tempDF['Occupancy'] = self.buildingOccupancy
-        tempDF['SquareFootage'] = self.buildingSquareFootage
+        #tempDF['SquareFootage'] = self.buildingSquareFootage
 
         # Re-index dataframe
-        tempDF.set_index('Meter', append=True,inplace=True)
+        tempDF.set_index('Building', append=True,inplace=True)
 
         return tempDF
 
@@ -81,7 +85,16 @@ def main():
         else:
             tempDF = MeterData(userInput).outputData
             outputDF = pd.concat([outputDF,tempDF])
-        
+
+    # Combine rows for multiple buildings into one, avoid summing gas/electric data together
+    outputDF = outputDF.groupby(['Building','datetime','Type']).agg({
+        'Usage Unit':'first',
+        'Usage':'sum',
+        'Occupancy':'first'
+    }).reset_index()
+
+
+
     # Output to csv
     outputDF.to_csv('output.csv')
 
