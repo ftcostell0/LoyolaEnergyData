@@ -50,7 +50,8 @@ class MeterData:
             'Type':'first',
             'Meter':'first',
             'Usage Unit':'first',
-            'Usage':'sum'
+            'Usage':'sum',
+            'Temperature':'first'
         })
 
         return dataframe
@@ -90,9 +91,9 @@ def main():
     outputDF = outputDF.groupby(['Building','datetime','Type']).agg({
         'Usage Unit':'first',
         'Usage':'sum',
-        'Occupancy':'first'
+        'Occupancy':'first',
+        'Temperature':'first'
     }).reset_index()
-
 
 
     # Output to csv
