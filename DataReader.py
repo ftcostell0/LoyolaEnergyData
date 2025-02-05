@@ -95,8 +95,9 @@ def main():
         'Temperature':'first'
     }).reset_index()
 
+    fileNameInput = input("What would you like to name the file?")
 
     # Output to csv
-    outputDF.to_csv('output.csv')
+    outputDF.to_csv(fileNameInput + '.csv')
 
 main()
