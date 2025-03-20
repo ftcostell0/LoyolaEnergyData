@@ -13,23 +13,15 @@ import pandas as pd
 class MeterData:
     # Dataframe of each meter and its respective building
     meterDF = pd.read_csv('meters.csv')
-    # Dataframe of occupancy in each building
-    occupancyDF = pd.read_csv('occupancy.csv')
-
+    
     def __init__(self, originalCSVFile):
-        
         # Store initial dataframe
         self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=4)
 
         # Pull metadata from initial dataframe
-        self.dataType = self.sourceDataFrame.loc[0,'Type']
         self.dataUnit = self.sourceDataFrame.loc[0,'Usage Unit']
         self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
-        #self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
-
-        # Building characteristics
-        self.buildingSquareFootage = None
-        self.buildingOccupancy = MeterData.occupancyDF.loc[MeterData.occupancyDF['building'] == self.buildingName, 'occupancy'].values[0]
+        self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
@@ -39,19 +31,17 @@ class MeterData:
     # Standardize the time data
     # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
     def standardizeTime(self, dataframe):
-
         # Standardize as pandas datetime, set as index, and drop unnecessary columns
         dataframe['datetime'] = pd.to_datetime(dataframe['Date'] + ' '  + dataframe['Start Time'])
         dataframe.set_index(['datetime'], inplace=True)
         dataframe = dataframe.drop(['Date', 'Start Time'], axis = 1)
 
         # Resample rules
-        dataframe = dataframe.resample('h').agg({
+        dataframe = dataframe.resample('me').agg({
             'Type':'first',
             'Meter':'first',
             'Usage Unit':'first',
-            'Usage':'sum',
-            'Temperature':'first'
+            'Usage':'sum'
         })
 
         return dataframe
@@ -64,8 +54,6 @@ class MeterData:
 
         # Add columns with new data
         tempDF['Building'] = self.buildingName
-        #tempDF['Occupancy'] = self.buildingOccupancy
-        #tempDF['SquareFootage'] = self.buildingSquareFootage
 
         # Re-index dataframe
         tempDF.set_index('Building', append=True,inplace=True)
@@ -90,9 +78,7 @@ def main():
     # Combine rows for multiple buildings into one, avoid summing gas/electric data together
     outputDF = outputDF.groupby(['Building','datetime','Type']).agg({
         'Usage Unit':'first',
-        'Usage':'sum',
-        #'Occupancy':'first',
-        'Temperature':'first'
+        'Usage':'sum'
     }).reset_index()
 
     fileNameInput = input("What would you like to name the file?")
