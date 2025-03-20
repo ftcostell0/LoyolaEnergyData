@@ -25,7 +25,7 @@ class MeterData:
         self.dataType = self.sourceDataFrame.loc[0,'Type']
         self.dataUnit = self.sourceDataFrame.loc[0,'Usage Unit']
         self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
-        self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
+        #self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
 
         # Building characteristics
         self.buildingSquareFootage = None
@@ -64,7 +64,7 @@ class MeterData:
 
         # Add columns with new data
         tempDF['Building'] = self.buildingName
-        tempDF['Occupancy'] = self.buildingOccupancy
+        #tempDF['Occupancy'] = self.buildingOccupancy
         #tempDF['SquareFootage'] = self.buildingSquareFootage
 
         # Re-index dataframe
@@ -91,7 +91,7 @@ def main():
     outputDF = outputDF.groupby(['Building','datetime','Type']).agg({
         'Usage Unit':'first',
         'Usage':'sum',
-        'Occupancy':'first',
+        #'Occupancy':'first',
         'Temperature':'first'
     }).reset_index()
 
