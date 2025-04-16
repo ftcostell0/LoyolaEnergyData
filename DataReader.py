@@ -16,13 +16,16 @@ class MeterData:
     def __init__(self, originalCSVFile):
         # Store initial dataframe
 
-        self.acccountNumber = self.readAccountNumber(originalCSVFile)
+        headerData = self.readAccountHeader(originalCSVFile)
 
-        self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=4)
+        self.accountNumber = headerData[0]
+        whiteSpaceLine = headerData[1] + 1
+
+        self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=whiteSpaceLine)
 
         # Pull metadata from initial dataframe
         self.dataUnit = self.sourceDataFrame.loc[0,'Usage Unit']
-        self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
+        #self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
         #self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
@@ -30,12 +33,15 @@ class MeterData:
         # Output as a clean dataframe
         self.outputData = self.processData(tempDF)
 
-    def readAccountNumber(self, filename):
+    def readAccountHeader(self, filename):
+        count = 0
+
         with open (filename, 'r') as file:
             for line in file:
+                count += 1
                 words = line.split(",")
                 if(words[0]) == '"Account Number"':
-                    return int(words[1])
+                    return (int(words[1]), count)
 
     # Standardize the time data
     # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
@@ -48,7 +54,6 @@ class MeterData:
         # Resample rules
         dataframe = dataframe.resample('ME').agg({
             'Type':'first',
-            'Meter':'first',
             'Usage Unit':'first',
             'Usage':'sum'
         })
@@ -58,8 +63,6 @@ class MeterData:
     # Final process of data to be outputted
     def processData(self, dataframe):
         tempDF = dataframe
-
-        tempDF = tempDF.drop(['Meter'], axis=1)
 
         # Add columns with new data
         #tempDF['Building'] = self.buildingName
