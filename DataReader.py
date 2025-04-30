@@ -6,36 +6,54 @@ This program reads in Loyola's BGE data and outputs as a single csv file to be u
 '''
 
 import pandas as pd
-
+import os
 
 # Class to handle data from each meter csv
 class MeterData:
     # Dataframe of each account and its respective building
-    accountDF = pd.read_csv('meters.csv')
     
     def __init__(self, originalCSVFile):
         # Store initial dataframe
+        print(originalCSVFile)
 
-        self.acccountNumber = self.readAccountNumber(originalCSVFile)
+        fileProcess = self.processFile(originalCSVFile)
 
-        self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=4)
+        self.acccountNumber = fileProcess[0]
+
+        self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=fileProcess[1])
+        print(self.sourceDataFrame)
 
         # Pull metadata from initial dataframe
-        self.dataUnit = self.sourceDataFrame.loc[0,'Usage Unit']
-        self.meterNumber = self.sourceDataFrame.loc[0,'Meter']
-        #self.buildingName = MeterData.meterDF.loc[MeterData.meterDF['meterNum'] == self.meterNumber, 'building'].values[0]
+        self.type = self.sourceDataFrame.loc[0,'Type']
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
         # Output as a clean dataframe
         self.outputData = self.processData(tempDF)
 
-    def readAccountNumber(self, filename):
+    def processFile(self, filename):
+        accountNumber = 0
+        skipLines = 0
+
         with open (filename, 'r') as file:
+            counter = 0
             for line in file:
                 words = line.split(",")
-                if(words[0]) == '"Account Number"':
-                    return int(words[1])
+
+                for i in range(len(words)):
+                    if(words[i] == 'Account Number' or words[i] == '"Account Number"'):
+                        accountNumber = words[i + 1]
+                
+                for i in range(len(words)):
+                    if(words[i] == 'Type' or words[i] == 'TYPE'):
+                        skipLines = counter
+                        break
+
+                counter += 1
+
+        return accountNumber, skipLines
+                
+
 
     # Standardize the time data
     # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
@@ -66,7 +84,6 @@ class MeterData:
         tempDF['Account Number'] = self.acccountNumber
 
         # Re-index dataframe
-        #tempDF.set_index('Building', append=True,inplace=True)
         tempDF.set_index('Account Number', append=True, inplace=True)
 
         return tempDF
@@ -75,22 +92,13 @@ def main():
     # Initialize empty dataframe to constantly append to
     outputDF = pd.DataFrame()
 
-    # Allow for user to input multiple files
-    while True:
-        userInput = input("Please enter a filename or STOP to stop" + "\n")
+    folderPath = "C:/Users/finco/Documents/GitHub/LoyolaEnergyData/DataFiles"
+    for dataFile in os.listdir(folderPath):
+        filePath = os.path.join(folderPath, dataFile)
 
-        # Add error checking later
-        if(userInput == "STOP"):
-            break
-        else:
-            tempDF = MeterData(userInput).outputData
-            outputDF = pd.concat([outputDF,tempDF])
+        tempDF = MeterData(filePath).outputData
+        outputDF = pd.concat([outputDF, tempDF])
 
-    # Combine rows for multiple buildings into one, avoid summing gas/electric data together
-    outputDF = outputDF.groupby(['Account Number','datetime','Type']).agg({
-        'Usage Unit':'first',
-        'Usage':'sum'
-    }).reset_index()
 
     fileNameInput = input("What would you like to name the file?")
 
