@@ -66,7 +66,6 @@ class MeterData:
         # Resample rules
         dataframe = dataframe.resample('ME').agg({
             'Type':'first',
-            'Meter':'first',
             'Usage Unit':'first',
             'Usage':'sum'
         })
@@ -76,8 +75,6 @@ class MeterData:
     # Final process of data to be outputted
     def processData(self, dataframe):
         tempDF = dataframe
-
-        tempDF = tempDF.drop(['Meter'], axis=1)
 
         # Add columns with new data
         #tempDF['Building'] = self.buildingName
