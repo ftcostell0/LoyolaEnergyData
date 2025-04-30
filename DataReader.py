@@ -69,9 +69,9 @@ class MeterData:
         usageType = dataframe.loc[0, 'TYPE']
 
         if(not hasUnit):
-            if(usageType == 'Electric Usage'):
+            if((usageType == 'Electric Usage') or (usageType == 'Electric usage')):
                 dataframe['USAGE UNIT'] = 'kWh'
-            elif((usageType == 'Gas Usage') or (usageType == 'Natural Gas Usage')):
+            elif((usageType == 'Gas Usage') or (usageType == 'Natural Gas Usage') or (usageType == 'Natural gas usage')):
                 dataframe['USAGE UNIT'] = 'Therms'
             else:
                 dataframe['USAGE UNIT'] = 'N/A'
