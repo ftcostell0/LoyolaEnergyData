@@ -18,13 +18,14 @@ class MeterData:
 
         fileProcess = self.processFile(originalCSVFile)
 
-        self.acccountNumber = fileProcess[0]
+        self.acccountNumber = int(fileProcess[0])
 
         self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=fileProcess[1])
+        self.sourceDataFrame = self.processColumns(self.sourceDataFrame)
         print(self.sourceDataFrame)
 
         # Pull metadata from initial dataframe
-        self.type = self.sourceDataFrame.loc[0,'Type']
+        self.type = self.sourceDataFrame.loc[0,'TYPE']
 
         tempDF = self.standardizeTime(self.sourceDataFrame)
 
@@ -52,6 +53,31 @@ class MeterData:
                 counter += 1
 
         return accountNumber, skipLines
+    
+    def processColumns(self, dataframe):
+        dataframe.columns = dataframe.columns.str.upper()
+        
+        dataframe = dataframe.rename(columns={
+            'USAGE (KWH)': 'USAGE',   
+            'USAGE (THERMS)': 'USAGE'     
+        })
+
+        columnDrops = ['END TIME', 'COST', 'NOTES', 'METER']
+        dataframe = dataframe.drop(columns=columnDrops, errors='ignore')
+
+        hasUnit = 'USAGE UNIT' in dataframe.columns
+        usageType = dataframe.loc[0, 'TYPE']
+
+        if(not hasUnit):
+            if(usageType == 'Electric Usage'):
+                dataframe['USAGE UNIT'] = 'kWh'
+            elif((usageType == 'Gas Usage') or (usageType == 'Natural Gas Usage')):
+                dataframe['USAGE UNIT'] = 'Therms'
+            else:
+                dataframe['USAGE UNIT'] = 'N/A'
+           
+
+        return dataframe
                 
 
 
@@ -59,15 +85,15 @@ class MeterData:
     # Electric comes in 15 minute intervals while gas comes hourly, needs to be resolved
     def standardizeTime(self, dataframe):
         # Standardize as pandas datetime, set as index, and drop unnecessary columns
-        dataframe['datetime'] = pd.to_datetime(dataframe['Date'] + ' '  + dataframe['Start Time'])
-        dataframe.set_index(['datetime'], inplace=True)
-        dataframe = dataframe.drop(['Date', 'Start Time'], axis = 1)
+        dataframe['DATETIME'] = pd.to_datetime(dataframe['DATE'] + ' '  + dataframe['START TIME'])
+        dataframe.set_index(['DATETIME'], inplace=True)
+        dataframe = dataframe.drop(['DATE', 'START TIME'], axis = 1)
 
         # Resample rules
         dataframe = dataframe.resample('ME').agg({
-            'Type':'first',
-            'Usage Unit':'first',
-            'Usage':'sum'
+            'TYPE':'first',
+            'USAGE UNIT':'first',
+            'USAGE':'sum'
         })
 
         return dataframe
@@ -78,10 +104,10 @@ class MeterData:
 
         # Add columns with new data
         #tempDF['Building'] = self.buildingName
-        tempDF['Account Number'] = self.acccountNumber
+        tempDF['ACCOUNT NUMBER'] = self.acccountNumber
 
         # Re-index dataframe
-        tempDF.set_index('Account Number', append=True, inplace=True)
+        tempDF.set_index('ACCOUNT NUMBER', append=True, inplace=True)
 
         return tempDF
 
