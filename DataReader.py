@@ -66,12 +66,15 @@ class MeterData:
         dataframe = dataframe.drop(columns=columnDrops, errors='ignore')
 
         hasUnit = 'USAGE UNIT' in dataframe.columns
-        usageType = dataframe.loc[0, 'TYPE']
+        usageType = dataframe.loc[0, 'TYPE'].split(" ")[0]
+        if(usageType == 'Natural'): usageType = 'Gas'
+
+        dataframe['TYPE'] = usageType
 
         if(not hasUnit):
-            if((usageType == 'Electric Usage') or (usageType == 'Electric usage')):
+            if((usageType == 'Electric')):
                 dataframe['USAGE UNIT'] = 'kWh'
-            elif((usageType == 'Gas Usage') or (usageType == 'Natural Gas Usage') or (usageType == 'Natural gas usage')):
+            elif((usageType == 'Gas')):
                 dataframe['USAGE UNIT'] = 'Therms'
             else:
                 dataframe['USAGE UNIT'] = 'N/A'
