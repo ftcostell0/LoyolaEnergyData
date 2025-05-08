@@ -14,7 +14,6 @@ class MeterData:
     
     def __init__(self, originalCSVFile):
         # Store initial dataframe
-        print(originalCSVFile)
 
         fileProcess = self.processFile(originalCSVFile)
 
@@ -22,7 +21,6 @@ class MeterData:
 
         self.sourceDataFrame = pd.read_csv(originalCSVFile, skiprows=fileProcess[1])
         self.sourceDataFrame = self.processColumns(self.sourceDataFrame)
-        print(self.sourceDataFrame)
 
         # Pull metadata from initial dataframe
         self.type = self.sourceDataFrame.loc[0,'TYPE']
