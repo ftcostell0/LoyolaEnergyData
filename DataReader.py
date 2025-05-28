@@ -116,17 +116,14 @@ def main():
     # Initialize empty dataframe to constantly append to
     outputDF = pd.DataFrame()
 
-    folderPath = "C:/Users/finco/Documents/GitHub/LoyolaEnergyData/DataFiles"
+    folderPath = "DataFiles/"
     for dataFile in os.listdir(folderPath):
         filePath = os.path.join(folderPath, dataFile)
 
         tempDF = MeterData(filePath).outputData
         outputDF = pd.concat([outputDF, tempDF])
 
-
-    fileNameInput = input("What would you like to name the file?")
-
     # Output to csv
-    outputDF.to_csv(fileNameInput + '.csv')
+    outputDF.to_csv('output.csv')
 
 main()
