@@ -91,7 +91,7 @@ class MeterData:
         dataframe = dataframe.drop(['DATE', 'START TIME'], axis = 1)
 
         # Resample rules
-        dataframe = dataframe.resample('ME').agg({
+        dataframe = dataframe.resample('M').agg({
             'TYPE':'first',
             'USAGE UNIT':'first',
             'USAGE':'sum'
